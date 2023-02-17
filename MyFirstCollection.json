@@ -13,13 +13,22 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"//Writing test in BDD",
-							"pm.test(\"Status code is 200 BDD syntax\", function() {",
-							"    pm.response.to.have.status(200);",
+							"",
+							"pm.test(\"Status code is 200 or 201\", () => {",
+							"    pm.expect(pm.response.code).to.eql(200 || 201);",
 							"});",
-							"pm.test(\"Status code is 200\", () => {",
-							"    pm.expect(pm.response.code).to.eql(200);",
-							"    });",
+							"",
+							"pm.test(\"headers content type\", () => {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.eql(\"application/json; charset=utf-8\");",
+							"});",
+							"",
+							"pm.test(\"Test cookies\", () => {",
+							"    pm.expect(pm.cookies.get(\"connect.sid\")).to.eql(\"s:k0edjjOZg2kek430fHQf_tOKW4JBOivT.CwZGOs52beI/CAI4kTTS7gtdcI6xck+cq2JUJW/UYX0\");",
+							"});",
+							"",
+							"pm.test(\"Test respnse time is less than 500 ms\", () => {",
+							"    pm.expect(pm.response.responseTime).to.lt(500);",
+							"});",
 							"",
 							"const responseJson = pm.response.json();",
 							"",
@@ -35,15 +44,18 @@
 							"",
 							"var respjs1 = responseJson[0];",
 							"",
-							"pm.test(\"Check in each of the array item, the “user” is the property\", ",
+							"",
+							"pm.test(\"Check in each of the array item, the “user” is the property and the data type\", ",
 							"() => {",
 							"pm.expect(respjs1).to.have.property(\"user\");",
+							"pm.expect(respjs1.user).to.be.an(\"String\") ",
+							"pm.expect(respjs1.sample).to.be.undefined",
 							"});",
 							"",
 							"",
-							"pm.test(\"Check if user proeprty value of first item in array is 58e007480aac31001185ecef\", ",
+							"pm.test(\"Check if user proeprty value of first item in array is 5a9ac18c7478810ea6c06381\", ",
 							"() => {",
-							"    pm.expect(respjs1.user).eql(\"58e007480aac31001185ecef\");",
+							"    pm.expect(respjs1.user).eql(\"5a9ac18c7478810ea6c06381\");",
 							"});",
 							"",
 							"pm.test(\"Check if source proeprty value of first item in array is user\", ",
@@ -53,7 +65,8 @@
 							"",
 							"pm.test(\"Check if text proeprty value of first item in array\", ",
 							"() => {",
-							"    pm.expect(respjs1.text).contains(\"cat meowing\");",
+							"    pm.expect(respjs1.text).contains(\"Cats make\");",
+							"    pm.expect(respjs1.text).contains(\"Dogs make\");",
 							"});",
 							"",
 							"",
@@ -64,7 +77,13 @@
 							"",
 							"pm.test(\"Check if status.sentCount is 1\", () => {",
 							"    pm.expect(respjs1.status.sentCount).eql(1);",
-							"});"
+							"});",
+							"",
+							"pm.test(\"plain text verification no format\", () => {",
+							"    pm.expect(pm.response.text()).contains(\"Cats\");",
+							"});",
+							"",
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -90,22 +109,43 @@
 		},
 		{
 			"name": "Pet Food Facts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const responseJson = pm.response.json();",
+							"",
+							"/*pm.test(\"Check an array contains\", () => {",
+							"   pm.expect(responseJson.product.nutrient_levels_tags).to.be.an(\"array\") ",
+							"   pm.expect(responseJson.product.nutrient_levels_tags).contains(\"en:fat-in-moderate-quantity\") ",
+							"   pm.expect(responseJson.product.nutrient_levels_tags).length.to.eql(1) ",
+							"});*/",
+							"pm.test(\"Check the environment\", () =>",
+							"{",
+							"    console.log(\"****\",pm.environment.name)",
+							"    pm.expect(pm.environment.name).to.eql(\"Prod\")",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://world.openpetfoodfacts.org/api/v0/product/20106836.json",
+					"raw": "https://{{hostName}}/api/v0/product/{{id}}.json",
 					"protocol": "https",
 					"host": [
-						"world",
-						"openpetfoodfacts",
-						"org"
+						"{{hostName}}"
 					],
 					"path": [
 						"api",
 						"v0",
 						"product",
-						"20106836.json"
+						"{{id}}.json"
 					]
 				},
 				"description": "Returns facts on pet food using barcode."
@@ -114,11 +154,22 @@
 		},
 		{
 			"name": "Dog Breeds",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"\")"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://{{dog_host}}/api/breeds/list/all",
+					"raw": "https://{{dog_host}}/api/breeds/list/{{ttt}}",
 					"protocol": "https",
 					"host": [
 						"{{dog_host}}"
@@ -127,12 +178,50 @@
 						"api",
 						"breeds",
 						"list",
-						"all"
+						"{{ttt}}"
 					]
 				},
 				"description": "List all dog breeds.\n\nURL - https://dog.ceo/dog-api/documentation/"
 			},
 			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "test5",
+			"value": "20106836"
+		},
+		{
+			"key": "hostName",
+			"value": "world.openpetfoodfacts.org"
+		},
+		{
+			"key": "id",
+			"value": "2324"
+		},
+		{
+			"key": "ttt",
+			"value": "all"
 		}
 	]
 }
